@@ -22,4 +22,4 @@
 
 
 ## Blog Post
-[Perl Weekly Challenge: My subset is-a missing a letter...](https://packy.dardan.com/b/of)
+[Perl Weekly Challenge: Empty Substrings and Empty Spaces](https://packy.dardan.com/b/p3)
