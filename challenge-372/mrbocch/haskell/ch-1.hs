@@ -1,14 +1,3 @@
--- reArrangeSpaces :: String -> String
--- rearrange the spaces so that there is an equal number
--- of spaces between every pair of adjacent words
--- seems like a really annoying thing to do.
--- I know I must, count spaces
--- words s
--- and leftReduce a certain amound of spaces between each
--- and at the end just dump them at the end.
--- wordCount = length . words
--- manually recurse.
--- Can't be too hard.
 reArrangeSpaces :: String -> String
 reArrangeSpaces s
     | wordCount s == 1 = (head . words $ s) ++ replicate (spacesCount s) ' '
