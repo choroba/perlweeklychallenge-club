@@ -1,4 +1,3 @@
-local ex = "aaaaa"
 
 local function largest_substring(x)
     local tab = {}
