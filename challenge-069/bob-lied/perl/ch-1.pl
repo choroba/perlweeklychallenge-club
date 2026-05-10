@@ -1,61 +1,86 @@
 #!/usr/bin/env perl
-# vim:set ts=4 sw=4 sts=4 et ai wm=0 nu syntax=perl:
-#
-# A strobogrammatic number is a number that looks the same when looked at upside down.
-# You are given two positive numbers $A and $B such that 1 <= $A <= $B <= 10^15.
-# Write a script to print all strobogrammatic numbers between the given two numbers.
-# Example
-#
-# Input: $A = 50, $B = 100
-#    Output: 69, 88, 96
+# vim:set ts=4 sw=4 sts=4 et ai wm=0 nu:
+#=============================================================================
+# Copyright (c) 2026, Bob Lied
+#=============================================================================
+# ch-1.pl Perl Weekly Challenge 069 Task 1  Strobogrammatic Number
+#=============================================================================
+# A strobogrammatic number is a number that looks the same when looked at
+# upside down.  You are given two positive numbers $A and $B such that
+# 1 <= $A <= $B <= 10^15.  Write a script to print all strobogrammatic
+# numbers between the given two numbers.
+#=============================================================================
 
-use strict;
-use warnings;
-use v5.30;
+use v5.42;
 
-my ($A, $B) = @ARGV[0,1];
+use Getopt::Long;
+my $Verbose = false;
+my $DoTest  = false;
 
-die "Missing A".usage() unless $A;
-die "Missing B".usage() unless $B;
-
-die "A out of range" unless $A >=1 && $A <= 10E15;
-die "B out of range" unless $B >=1 && $B <= 10E15;
-
-die "A > B" unless $A <= $B;
-
-my @SmallStrobo = ( 0, 1, 8, 11, 69, 88, 96 );
-
-# Handle easy cases easily
-if ( $B < 100 )
+GetOptions("test" => \$DoTest, "verbose" => \$Verbose);
+my $logger;
 {
-    grep { $_ >= $A } @SmallStrobo;
+    use Log::Log4perl qw(:easy);
+    Log::Log4perl->easy_init({ level => ($Verbose ? $DEBUG : $INFO ),
+            layout => "%d{HH:mm:ss.SSS} %p{1} %m%n" });
+    $logger = Log::Log4perl->get_logger();
 }
+#=============================================================================
 
-# From the number of digits in A and B, we can determine the upper and
-# lower bounds on the size of possible results.
+exit(!runTest()) if $DoTest;
 
-my $minDig = length($A);
-my $maxDig = length($B);
+say join(", ", strobrange(@ARGV)->@*);
 
-# Build a string from the inside out.  Pick one or a pair of center digits
-# and then add combinations to each end.
-
-my @Strob;
-$Strob[0] = 0;
-$Strob[1] = 1;
-$Strob[6] = 9;
-$Strob[8] = 8;
-$Strob[9] = 6;
-
-sub enStrob
+#=============================================================================
+sub strobrange($beg, $end)
 {
-    my ($seed, $dig) = @_;
-}
-
-for my $seed ( @SmallStrobo )
-{
-    for my $dig (0 1 6 8 9)
+    my @answer;
+    for my $size ( length("$beg") .. length("$end") )
     {
-        $seed = enStrob($seed, $dig
+        push @answer, grep { $beg <= $_ <= $end } strob($size, $size)->@*;
     }
+    return [ sort { $a <=> $b } @answer ];
+}
+
+# Generate strobogrammatic numbers of length n
+sub strob($n, $length)
+{
+    $logger->debug(' 'x$n, "Enter: $n [$length]");
+    if ( $n <= 0 ) {
+        $logger->debug(' 'x$n, "Constant: $n ['']");
+        return [ '' ];
+    }
+    elsif ( $n == 1 ) {
+        $logger->debug(' 'x$n, "Constant: $n [0 1 8]");
+        return [ 0, 1, 8 ]
+    }
+
+    my @result;
+    my $middle = strob($n-2, $length);
+    for my $m ( $middle->@*  )
+    {
+        push @result, "0${m}0" if ( $n != $length );
+        push @result, "1${m}1", "8${m}8", "6${m}9", "9${m}6";
+    }
+    $logger->debug(' 'x$n, "Leave $n [@result]");
+    return \@result;
+}
+
+sub runTest
+{
+    use Test2::V0;
+
+    is( strobrange(1,9), [1,8], "One digit");
+    is( strobrange(10,99), [11,69,88,96], "Two digit");
+    is( strobrange(100,999), [ 101, 111, 181, 609, 619, 689, 808, 818, 888, 906, 916, 986 ], "Three digit");
+    is( strobrange(1000,9999), [
+1001, 1111, 1691, 1881, 1961, 6009, 6119, 6699, 6889, 6969, 8008, 8118, 8698, 8888, 8968, 9006, 9116, 9696, 9886, 9966
+        ], "Four digit");
+
+    is( strobrange(80, 120), [ 88, 96, 101, 111 ], 'Multiple lengths 2-3');
+    is( strobrange(90, 1120), [
+            96,101, 111, 181, 609, 619, 689, 808, 818, 888, 906, 916, 986 , 1001, 1111
+        ], 'Multiple lengths 2-4');
+
+    done_testing;
 }
