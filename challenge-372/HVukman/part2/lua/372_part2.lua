@@ -4,7 +4,7 @@ local function largest_substring(x)
     local res = {}
 
     -- insert characters as keys
-    for i=1,#ex do
+    for i=1,#x do
         tab[string.sub(x,i,i)] = true
     end
 
